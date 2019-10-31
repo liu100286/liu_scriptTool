@@ -25,7 +25,7 @@ class lookLog(object):
 
 
     def getLog(self):
-        print("getLog")
+        print("getLog,CN=",self.CN,',IP=',self.IP)
         s = socket.socket()  # 创建 socket 对象
         aa = s.connect_ex((self.CN, 12400))
         # aa = s.connect_ex((self.CN, int(self.IP)))
@@ -72,11 +72,17 @@ class lookLog(object):
                     mFilter=str(self.Entry_log_filter.get())
 
                 if len(s1)>0:
+                    print('len(s1):',len(s1))
+
                     if mFilter!='':
                         if str(s1.strip()).find(mFilter) > -1:
-                            self.Listbox_log.insert(self.tk.END, s1)
+                            # self.Listbox_log.insert(self.tk.END, s1)
+                            self.add_log_ListBox(s1)
                     else:
-                        self.Listbox_log.insert(self.tk.END, s1)
+                        self.add_log_ListBox(s1)
+                        # self.Listbox_log.insert(self.tk.END, s1)
+
+
                 if self.pause==False:
                     self.Listbox_log.yview_moveto(1.0)
 
@@ -86,6 +92,17 @@ class lookLog(object):
                 print("stop")
                 aa.close()
                 break
+
+    def add_log_ListBox(self,log_str):
+        max_len=300
+        print('log_str:',log_str)
+        for i in range(0,len(log_str),max_len):
+            print(log_str[i:i+max_len])
+            print_str=log_str[i:i+max_len]
+            self.Listbox_log.insert(self.tk.END, print_str)
+
+
+
 
     def stopLog(self):
         print('stopLog')
@@ -269,7 +286,7 @@ if __name__ == '__main__':
     import cv2
 
     import tkinter.filedialog
-    Obj= lookLog(tk,ttk,'123.59.170.29',12882)
+    Obj= lookLog(tk,ttk,'cncz48.padyun.cn',13203)
 
 
 

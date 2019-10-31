@@ -39,7 +39,7 @@ if os.path.exists('./task.uicfg')==False:
     f_task=open('./task.uicfg')
     f_task.close()
 
-Version = "4.9  "
+Version = "===5.0==="
 
 def toGray():
     img = cv2.imread(path, 0)
