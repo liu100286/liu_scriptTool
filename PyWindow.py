@@ -21,8 +21,6 @@ import http.client
 
 import requests
 
-
-
 # print(windnd)
 path = "D:\\jingl\\newScript\\bin\\adb\\screenshot.png"
 ip = '192.168.1.79'
@@ -30,16 +28,22 @@ st = subprocess.STARTUPINFO
 st.dwFlags = subprocess.STARTF_USESHOWWINDOW
 st.wShowWindow = subprocess.SW_HIDE
 
-IP_pathName='./Connect_IP.txt'
+IP_pathName = './Connect_IP.txt'
 print(os.path.exists(IP_pathName))
-if os.path.exists(IP_pathName)==False:
-    f_IP=open(IP_pathName,'w')
+if os.path.exists(IP_pathName) == False:
+    f_IP = open(IP_pathName, 'w')
     f_IP.close()
-if os.path.exists('./task.uicfg')==False:
-    f_task=open('./task.uicfg')
+if os.path.exists('./task.uicfg') == False:
+    f_task = open('./task.uicfg')
     f_task.close()
 
+ui_configure_file = './tools_configure.json'
+if os.path.exists(ui_configure_file) == False:
+    tools_configure = open(ui_configure_file, 'w')
+    tools_configure.close()
+
 Version = "===5.0==="
+
 
 def toGray():
     img = cv2.imread(path, 0)
@@ -48,6 +52,7 @@ def toGray():
 
 def pushJson():
     print("pushjson")
+    uicfg_path=['/data/as/task_config/task.uicfg','/sdcard/yunpai_files/uicache/task.uicfg']
     ip = entry.get()
     f_IP = open(IP_pathName, 'r+')
     f_IP.write(ip)
@@ -65,7 +70,11 @@ def pushJson():
     f.write(text1.get('0.0', "end"))
     f.close()
     # ret = subprocess.call("adb -s " + ip + ":5555 push D:\\jingl\\newScript\\py\\task.uicfg /sdcard/yunpai_files/uicache/task.uicfg")
-    ret = subprocess.call("adb -s " + ip + ":5555 push task.uicfg /sdcard/yunpai_files/uicache/task.uicfg",
+
+    print('combobox_machineType[\'values\']', combobox_machineType.current())
+    write_ui_configure('combobox_machineType',combobox_machineType.current())
+
+    ret = subprocess.call("adb -s " + ip + ":5555 push task.uicfg " + uicfg_path[combobox_machineType.current()],
                           startupinfo=st)
     # ret = subprocess.call("adb push task.uicfg /sdcard/yunpai_files/uicache/task.uicfg",
     #                       startupinfo=st)
@@ -298,7 +307,7 @@ def findpic(string):
     print("sim=", minandmax[1])
     printStr = "x=" + str(minandmax[3][0]) + ",y=" + str(minandmax[3][1]) + ",sim=" + str(minandmax[1])
     label6 = tk.Label(tab3, text=printStr, width=40, height=1).place(x=100, y=40)
-    if combobox_switch.get()=='是':
+    if combobox_switch.get() == '是':
         img2 = cv2.cvtColor(img2, cv2.COLOR_RGB2HSV)
 
     img1 = cv2.cvtColor(img_screencap, cv2.COLOR_RGB2HSV)
@@ -312,7 +321,7 @@ def findpic(string):
     print("minandmax=", str(minandmax[3][0]))
     printStr = "x=" + str(minandmax[3][0]) + ",y=" + str(minandmax[3][1]) + ",sim=" + str(minandmax[1])
     label7 = tk.Label(tab3, text=printStr, width=40, height=1).place(x=100, y=70)
-    if combobox_switch.get()=='是':
+    if combobox_switch.get() == '是':
         img2 = cv2.cvtColor(img2, cv2.COLOR_RGB2HLS)
 
     img1 = cv2.cvtColor(img_screencap, cv2.COLOR_RGB2HLS)
@@ -431,7 +440,7 @@ def loadTaskUICfg():
     # default_value = tk.StringVar()
     # default_value.set(f.readline())
     # entry8 = tk.Entry(tab1, width=100, textvariable=default_value)
-    text1 = tk.Text(tab1, width=70, height=5)
+    text1 = tk.Text(tab1, width=70, height=10)
     text1.insert(tk.INSERT, f.readline())
     f.close()
     text1.place(x=0, y=80)
@@ -529,7 +538,6 @@ def PortToIp(mPort):
     ip2 = int(x / 255)
     ip3 = x % 255
     print('ip2=', ip2, ',ip3=', ip3)
-
     return "192.168." + str(ip2) + '.' + str(ip3)
 
 
@@ -587,10 +595,12 @@ def mLookLog():
     obj.threads[0].setDaemon(True)
     obj.threads[0].start()
 
+
 def connectIP():
     print("connectIP")
     ip = entry.get()
-    ret = subprocess.call("adb connect " + ip , startupinfo=st)
+    ret = subprocess.call("adb connect " + ip, startupinfo=st)
+
 
 def rebootIP():
     print("rebootIP")
@@ -600,16 +610,29 @@ def rebootIP():
     threads[0].setDaemon(True)
     threads[0].start()
 
+
 def reboot():
     ip = entry.get()
     ret = subprocess.call("adb -s " + ip + ":5555 reboot", startupinfo=st)
 
-installPath_Str=''
+
+def BACK():
+    ip = entry.get()
+    ret = subprocess.call("adb -s " + ip + ":5555 shell input keyevent 4", startupinfo=st)
+
+
+def HOME():
+    ip = entry.get()
+    ret = subprocess.call("adb -s " + ip + ":5555 shell input keyevent 3", startupinfo=st)
+
+
+installPath_Str = ''
+
 
 def setInstallPathThread():
     global installStart
-    print('installStart=' , installStart)
-    if installStart['text']=='wait':
+    print('installStart=', installStart)
+    if installStart['text'] == 'wait':
         print('wait install')
         return
     threads = []
@@ -624,16 +647,17 @@ def setInstallPath():
     global installPath_Str
     filename = tk.filedialog.askopenfilename()
     if filename != '':
-        installPath_Str=filename
-        mStr=re.search('\S+\/([\S+\.apk]+)',filename)
+        installPath_Str = filename
+        mStr = re.search('\S+\/([\S+\.apk]+)', filename)
         print("mStr=", mStr[1])
         if mStr:
             selectInstallPath_label.config(text=mStr[1]);
         else:
             selectInstallPath_label.config(text='错误');
-        print("filename=",filename)
+        print("filename=", filename)
     else:
         self.label5.config(text="空");
+
 
 def installApk():
     global installPath_Str
@@ -648,23 +672,22 @@ def installApk():
     #     installStart['text'] = 'not devices'
     #     return
 
-    installStart['text']='wait'
+    installStart['text'] = 'wait'
 
     print('installApk')
     print("adb -s " + ip + ':5555 install -r ' + installPath_Str)
 
-
-
     ret = subprocess.call("adb -s " + ip + ':5555 install -r ' + installPath_Str, startupinfo=st)
-    print("ret=" , ret)
-    installStart['text']='OK'
+    print("ret=", ret)
+    installStart['text'] = 'OK'
 
-#连接soket,将收到的数据保存
+
+# 连接soket,将收到的数据保存
 def saveH264():
-    #保存h264文件
+    # 保存h264文件
     print('saveH264')
 
-    print('cn=',combobox1.get())
+    print('cn=', combobox1.get())
     print("IP=", entry12.get())
     mip = entry12.get()
     if len(mip) == 5:
@@ -678,9 +701,10 @@ def saveH264():
         [0, 0, 0, 67, 2, 9, 33, 0, 0, 0, 0, 22, 0, 0, 0, 0, 23, 0, 0, 0, 0, 21, 0, 0, 0, 45, 115, 108, 102, 76, 106,
          102, 108, 76, 74, 70, 76, 74, 70, 68, 56, 50, 117, 50, 51, 52, 51, 52, 107, 106, 50, 108, 54, 106, 106, 75,
          106, 65, 76, 75, 50, 54, 51, 52, 50, 108, 102, 107, 106, 76, 57])
-    #[0, 0, 0, 22, 1, 10, 25, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    # [0, 0, 0, 22, 1, 10, 25, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     # msg1 = bytes([0, 0, 0, 22, 1, 10, 25, 0, 0, 5, 0, 26, 0, 0, 2, 208, 18, 0, 30, 132, 128, 19, 0, 0, 0, 30])
-    msg1 = bytes([0, 0, 0, 22, 1, 10, 25, 0, 0, 5, 0, 26, 0, 0, 2, 256-48, 18, 0, 30, 256-124, 256-128, 19, 0, 0, 0, 30])
+    msg1 = bytes(
+        [0, 0, 0, 22, 1, 10, 25, 0, 0, 5, 0, 26, 0, 0, 2, 256 - 48, 18, 0, 30, 256 - 124, 256 - 128, 19, 0, 0, 0, 30])
     getDataIP = socket.inet_aton(mip)
     print(getDataIP, type(getDataIP))
     s.send(getDataIP)
@@ -689,31 +713,29 @@ def saveH264():
     s.send(msg1)
     s.send(bytes([0, 0, 0, 2, 0, 5]))
 
-    fileH264=open('./test.h264','ab+')
-    index=0
+    fileH264 = open('./test.h264', 'ab+')
+    index = 0
     while True:
         data = s.recv(2097152)
         # print(data)
         fileH264.write(data)
-        index=index+1
+        index = index + 1
         if button_RecordingH264['text'] == '录制h264':
             print('saveH264 stop')
             break
-        if index>100:
-            index==0
+        if index > 100:
+            index == 0
             s.send(bytes([0, 0, 0, 2, 0, 5]))
 
     fileH264.close()
 
 
-
-
-#开始录制h264
+# 开始录制h264
 def getH264File():
     print(button_RecordingH264['text'])
 
-    if button_RecordingH264['text']=='录制h264':
-        button_RecordingH264['text']='停止录制'
+    if button_RecordingH264['text'] == '录制h264':
+        button_RecordingH264['text'] = '停止录制'
         threads = []
         t1 = threading.Thread(target=saveH264)
         threads.append(t1)
@@ -722,30 +744,32 @@ def getH264File():
     else:
         button_RecordingH264['text'] = '录制h264'
         time.sleep(1)
-#播放h264文件
-def h264Play ():
+
+
+# 播放h264文件
+def h264Play():
     cap = cv2.VideoCapture()
     # f = open(r'E:\h264Play\CH-VSPlayer V6.2.0_3\test.h264', 'wb+')
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('A', 'V', 'C', '1'))
 
     cap.open('./test.h264')
-    index=0
+    index = 0
     while True:
         try:
-            ret,frame = cap.read()
-        except :
+            ret, frame = cap.read()
+        except:
             print('error')
         print(cap.isOpened())
         if ret:
             # print(frame)
             try:
-                cv2.imshow('frame',frame)
+                cv2.imshow('frame', frame)
             except:
                 print('error')
         else:
-           index=index+1
+            index = index + 1
         cv2.waitKey(25)
-        if index>120:
+        if index > 120:
             button_playH264['text'] = '播放h264'
             break
         if button_playH264['text'] == '播放h264':
@@ -754,9 +778,10 @@ def h264Play ():
     cv2.destroyAllWindows()
     cap.release()
 
+
 def startPlay():
-    if button_playH264['text']=='播放h264':
-        button_playH264['text']='停止'
+    if button_playH264['text'] == '播放h264':
+        button_playH264['text'] = '停止'
         print('start')
         threads = []
         t1 = threading.Thread(target=h264Play)
@@ -764,11 +789,42 @@ def startPlay():
         threads[0].setDaemon(True)
         try:
             threads[0].start()
-        except :
+        except:
             print('error')
     else:
         button_playH264['text'] = '播放h264'
         time.sleep(1)
+
+
+def read_ui_configure(key):
+    global ui_configure_file
+    if os.path.getsize(ui_configure_file)==0:
+        return 0
+    f = open(ui_configure_file, 'r')
+    load_dic = json.load(f)
+    f.close()
+    print('load_dic:', load_dic)
+    try:
+        return load_dic[key]
+    except :
+        return 0
+
+def write_ui_configure(key,value):
+    global ui_configure_file
+    # f = open(ui_configure_file, 'w')
+    dic={}
+    if os.path.getsize(ui_configure_file) == 0:
+        dic[key]=value
+    else:
+        f = open(ui_configure_file, 'r+')
+        dic=json.load(f)
+        f.close()
+        print(dic)
+        dic[key]=value
+        print(dic)
+    f = open(ui_configure_file, 'w+')
+    json.dump(dic,f)
+    f.close()
 
 
 
@@ -798,23 +854,23 @@ mWindow.geometry('700x300+500+200')
 mWindow.resizable(width=False, height=False)
 
 f_IP = open(IP_pathName, 'r+')
-current_ip=f_IP.read()
+current_ip = f_IP.read()
 f_IP.close()
-entry_IP =tk.StringVar()
+entry_IP = tk.StringVar()
 entry_IP.set(current_ip)
-entry = tk.Entry(mWindow, width=20,textvariable = entry_IP)
+entry = tk.Entry(mWindow, width=20, textvariable=entry_IP)
 label1 = tk.Label(mWindow, text="IP", width=1, height=1)
-butReboot=tk.Button(mWindow,text="reboot",width=8,height=1,command=rebootIP).place(x=510,y=30)
-butConnect=tk.Button(mWindow,text="connect",width=8,height=1,command=connectIP).place(x=600,y=30)
+butReboot = tk.Button(mWindow, text="reboot", width=8, height=1, command=rebootIP).place(x=510, y=30)
+butConnect = tk.Button(mWindow, text="connect", width=8, height=1, command=connectIP).place(x=600, y=30)
 
-selectInstallPath_button = tk.Button(mWindow, text="选择", width=5, command=setInstallPath).place(x=510,y=65)
+selectInstallPath_button = tk.Button(mWindow, text="选择", width=5, command=setInstallPath).place(x=510, y=65)
 selectInstallPath_label = tk.Label(mWindow, text='')
-selectInstallPath_label.place(x=560,y=65)
+selectInstallPath_label.place(x=560, y=65)
 
-install_button=tk.Button(mWindow, text="安装", width=5, command=setInstallPathThread).place(x=510,y=95)
-installStart=tk.Label(mWindow,text='OK')
+install_button = tk.Button(mWindow, text="安装", width=5, command=setInstallPathThread).place(x=510, y=95)
+installStart = tk.Label(mWindow, text='OK')
 
-installStart.place(x=560,y=95)
+installStart.place(x=560, y=95)
 
 entry7 = tk.Entry(mWindow, width=10)
 button8 = tk.Button(mWindow, text="点击屏幕", width=8, height=1, command=clickScreen).place(x=600, y=140)
@@ -843,6 +899,11 @@ button17 = tk.Button(tab1, text="载入", width=7, height=1, command=loadTaskUIC
 combobox = ttk.Combobox(tab1, width=12)
 combobox['values'] = uicfgList
 
+combobox_machineType = ttk.Combobox(tab1, width=8)
+combobox_machineType['values'] = ["3399", "3368"]
+combobox_machineType.current(read_ui_configure("combobox_machineType"))
+
+
 for i in range(0, len(uicfgList)):
     print(uicfgList[i])
     if uicfgList[i] == 'task.uicfg':
@@ -853,7 +914,7 @@ f = open(combobox.get(), "r+")
 # default_value.set(f.readline())
 
 # entry8 = tk.Entry(tab1, width=100, textvariable=default_value)
-text1 = tk.Text(tab1, width=70, height=5)
+text1 = tk.Text(tab1, width=70, height=10)
 text1.insert(tk.INSERT, f.readline())
 f.close()
 
@@ -882,9 +943,9 @@ button11 = tk.Button(tab3, text="RGB", width=8, command=lambda: findpic("RGB"))
 button12 = tk.Button(tab3, text="HSV", width=8, command=lambda: findpic("HSV"))
 button13 = tk.Button(tab3, text="HLS", width=8, command=lambda: findpic("HLS"))
 button18 = tk.Button(tab3, text="二值化", width=8, command=lambda: toValue())
-lable_switch=tk.Label(tab3,text='是否转换查找图')
-combobox_switch=ttk.Combobox(tab3,text='转换原图',width=6)
-combobox_switch['values']=['否','是']
+lable_switch = tk.Label(tab3, text='是否转换查找图')
+combobox_switch = ttk.Combobox(tab3, text='转换原图', width=6)
+combobox_switch['values'] = ['否', '是']
 combobox_switch.current(0)
 entry13 = tk.Entry(tab3, width=15)
 entry14 = tk.Entry(tab3, width=15)
@@ -900,12 +961,14 @@ button_lookLog = tk.Button(tab4, text='查看线上日志', width=12, height=1, 
 combobox2 = ttk.Combobox(tab4, width=25)
 combobox2['values'] = []
 button15 = tk.Button(tab4, text="下载", width=5, height=1, command=lambda: Download())
-button_RecordingH264=tk.Button(tab4,text='录制h264',width=8, height=1,command=lambda: getH264File())
-button_playH264=tk.Button(tab4,text='播放h264',width=8, height=1,command=lambda: startPlay())
+button_RecordingH264 = tk.Button(tab4, text='录制h264', width=8, height=1, command=lambda: getH264File())
+button_playH264 = tk.Button(tab4, text='播放h264', width=8, height=1, command=lambda: startPlay())
 
-tabControl.add(tab5,text='任务配置')
-
-
+tabControl.add(tab5, text='任务配置')
+button1_home = tk.Button(tab5, text="HOME", width=5, height=1, command=lambda: HOME())
+button1_home.place(x=10, y=10)
+button1_back = tk.Button(tab5, text="BACK", width=5, height=1, command=lambda: BACK())
+button1_back.place(x=60, y=10)
 
 setSize = tk.IntVar()
 setSize.set(1)
@@ -946,14 +1009,15 @@ label5.place(x=100, y=10)
 combobox.place(x=0, y=50)
 combobox1.place(x=0, y=5)
 combobox2.place(x=0, y=80)
+combobox_machineType.place(x=400, y=10)
 button17.place(x=120, y=45)
 
 # button1.pack(side='left')
 button2.place(x=0, y=10)
-button3.place(x=100, y=10)
-button4.place(x=300, y=10)
-button5.place(x=400, y=10)
-button6.place(x=200, y=10)
+button3.place(x=80, y=10)
+button4.place(x=240, y=10)
+button5.place(x=320, y=10)
+button6.place(x=160, y=10)
 button7.place(x=30, y=150)
 button10.place(x=10, y=10)
 button11.place(x=10, y=40)
@@ -964,11 +1028,11 @@ button15.place(x=150, y=120)
 button_lookLog.place(x=0, y=160)
 button16.place(x=120, y=150)
 button18.place(x=10, y=130)
-button_RecordingH264.place(x=130,y=160)
-button_playH264.place(x=0,y=200)
+button_RecordingH264.place(x=130, y=160)
+button_playH264.place(x=0, y=200)
 
-lable_switch.place(x=10,y=160)
-combobox_switch.place(x=100,y=160)
+lable_switch.place(x=10, y=160)
+combobox_switch.place(x=100, y=160)
 r1.place(x=510, y=260)
 r2.place(x=560, y=260)
 text1.place(x=0, y=80)

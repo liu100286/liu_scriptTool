@@ -57,7 +57,7 @@ class lookLog(object):
         mSend = s.send(msg)
 
         while True:
-            data = s.recv(1024)
+            data = s.recv(2048)
             # print('--------------------', data.decode('utf8', 'ignore'))
             mStr=data.decode('utf8', 'ignore')
             s2 = mStr.split('\n')
@@ -94,7 +94,7 @@ class lookLog(object):
                 break
 
     def add_log_ListBox(self,log_str):
-        max_len=300
+        max_len=248
         print('log_str:',log_str)
         for i in range(0,len(log_str),max_len):
             print(log_str[i:i+max_len])
@@ -286,7 +286,7 @@ if __name__ == '__main__':
     import cv2
 
     import tkinter.filedialog
-    Obj= lookLog(tk,ttk,'cncz48.padyun.cn',13203)
+    Obj= lookLog(tk,ttk,'cncz27.padyun.cn',13348)
 
 
 

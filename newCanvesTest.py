@@ -29,6 +29,10 @@ import win32con
 
 from pymouse import PyMouse, PyMouseEvent
 
+import tensorflow as tf
+
+
+
 class Contour(object):
 
     def __init__(self):
@@ -206,7 +210,6 @@ class canves(object):
         self.draw_canvas = None
         self.ImgList = []
         self.ImgList_index = -1
-
         '''
         self.canvas_FM = self.tk.Canvas(self.mWindowMouse, bg='grey', height=200, width=200)
         self.canvas_FM.config(width=200, height=200)
@@ -224,7 +227,7 @@ class canves(object):
         self.selectRegion_Press_x1 = None
         self.selectRegion_Press_y1 = None
         self.draw_Window = None
-
+        self.TextDetection=None
         # = ttk.Notebook(mWindow)
 
         # side=TOP or BOTTOM or LEFT or RIGHT -  where to add this widget.
@@ -619,6 +622,7 @@ class canves(object):
             print(self.clickDownX,self.clickDownY)
             rect=Obj.getClickRect(self.clickDownX, self.clickDownY, img)
             img=Obj.getImage()
+
             img=Image.fromarray(img)
             self.mImgContourSave=img
             self.mImgContour = ImageTk.PhotoImage(img)
@@ -799,7 +803,7 @@ class canves(object):
                 break
         name = str(int(time.time()))
         self.CMD("adb -s " + ip + ":5555 shell screencap -p /sdcard/screencap.png")
-        self.CMD("adb -s " + ip + ":5555 pull /sdcard/screencap.png " + "./" + name + ".png")
+        # self.CMD("adb -s " + ip + ":5555 pull /sdcard/screencap.png " + "./" + name + ".png")
         self.CMD("adb -s " + ip + ":5555 pull /sdcard/screencap.png " + "./pic\\" + name + ".png")
         self.currentImage = Image.open('./pic\\' + name + '.png')
         self.currentImage = self.currentImage.convert("RGB")
@@ -1212,7 +1216,7 @@ class canves(object):
 
         self.button_cut = self.tk.Button(self.mWindow1, text='裁剪', width=8, command=self.mCutPic)
         self.button_cut.grid(row=10, column=0, columnspan=1, rowspan=1)
-        # 图片下侧
+        ######################################图片下方######################################
         self.tk.Label(self.mWindow1, text='范围', width=8).grid(row=51, column=2, columnspan=1, rowspan=1,sticky=self.tk.W)
         self.but_xy_copy = self.tk.Button(self.mWindow1, text='复制', command=self.copy_xy)
         self.but_xy_copy.grid(row=51, column=4, columnspan=1, rowspan=1, sticky=self.tk.W)
@@ -1257,7 +1261,8 @@ class canves(object):
         # button4 = self.tk.Button(self.mWindow1, text='保存', width=8, command=self.saveImg)
         
         button4 = self.tk.Button(self.mWindow1, text='保存', width=8, command=lambda: self.saveImg("contour"))
-        button4.grid(row=51, column=31, columnspan=1, rowspan=1)
+        button4.grid(row=51, column=32, columnspan=1, rowspan=1)
+
 
         self.label_X = self.tk.Label(self.mWindow1, text='X:',width=5)
         self.label_X.grid(row=51, column=17, columnspan=1, rowspan=1)
@@ -1307,11 +1312,11 @@ class canves(object):
         self.canvas.pack(side=self.tk.LEFT, expand=True, fill=self.tk.BOTH)
         # self.cut_canvas=self.tk.Canvas(self.canvas,bg='grey',height=0,width=0)
         # self.cut_canvas.place(x=0,y=0)
-        # 右边选项卡
+        ##########################################右边选项卡##########################################
         print('-------------------------------------')
         self.tabControl = self.ttk.Notebook(self.mWindow1)
         to_Value = self.ttk.Frame(self.tabControl, width=500, height=250)
-
+        ######二值化######
         self.tabControl.add(to_Value, text='二值化')
         self.tk.Label(to_Value, text='Minimum', width=10).place(x=0, y=10)
         self.entry_to_Value_min = self.tk.Entry(to_Value, width=15)
@@ -1341,7 +1346,7 @@ class canves(object):
         self.combobox_to_Value_mode.place(x=80, y=130)
         to_Value_vague_Button = self.tk.Button(to_Value, text="确定", width=8, height=1, command=self.toValue_vague)
         to_Value_vague_Button.place(x=130, y=160)
-
+        ######轮廓提取######
         find_Contours = self.ttk.Frame(self.tabControl, width=500, height=250)  # 轮廓提取
         self.tabControl.add(find_Contours, text='轮廓提取')
         self.tabControl.grid(row=4, column=51, columnspan=10, rowspan=10)
@@ -1352,7 +1357,7 @@ class canves(object):
         self.findContours_Button = self.tk.Button(find_Contours, text='提取', width=8, height=1,
                                                   command=self.myFindContours)
         self.findContours_Button.place(x=0, y=30)
-
+        ######锐化######
         sharpening = self.ttk.Frame(self.tabControl, width=500, height=250)  # 锐化
         self.tabControl.add(sharpening, text='锐化')
         sharpening_button_canny = self.tk.Button(sharpening, text="锐化canny", width=15, height=1,
@@ -1363,7 +1368,7 @@ class canves(object):
         sharpening_button_filter2D = self.tk.Button(sharpening, text="锐化filter2D", width=15, height=1,
                                                     command=lambda: self.sharpening("filter2D"))
         sharpening_button_filter2D.place(x=10, y=40)
-
+        ######腐蚀和膨胀######
         erodeAndDilate = self.ttk.Frame(self.tabControl, width=500, height=250)  # 腐蚀和膨胀
         self.tabControl.add(erodeAndDilate, text='膨胀腐蚀')
         self.tk.Label(erodeAndDilate, text='卷积核', width=10).place(x=0, y=40)
@@ -1384,7 +1389,130 @@ class canves(object):
                                             command=lambda: self.erodeAndDilate_("dilate"))
         self.dilate_button.place(x=100, y=80)
 
-        self.colorTool()
+        AIcap = self.ttk.Frame(self.tabControl, width=500, height=250)  # 腐蚀和膨胀
+        self.tabControl.add(AIcap, text='AI')
+        self.AI_cap(AIcap)####模型相关
+
+        self.colorTool() ############多点找色框
+
+    def AI_cap(self,frame):
+        print('AI_cap')
+        self.load_model_button=self.tk.Button(frame, text='载入模型', width=8,command=lambda: self.load_model())
+        self.load_model_button.place(x=10,y=10)
+        self.click_str_entry = self.tk.Entry(frame, width=8)
+        self.click_str_entry.place(x=10,y=53)
+        self.click_str_button=self.tk.Button(frame, text='点击', width=8,command=lambda :self.execute_model2())
+        self.click_str_button.place(x=80,y=50)
+
+    def load_model(self):
+        if self.TextDetection is None:
+            from model import model
+            self.TextDetection=model.TextDetection()
+            self.TextDistinguish=model.TextDistinguish()
+
+    def execute_model(self):
+        '''
+
+        :return:
+        '''
+        time1=time.time()
+        if self.TextDetection is None:
+            return
+
+        print('self.click_str_entry  ', self.click_str_entry.get())
+        if self.click_str_entry.get()=='':
+            print('self.click_str_entry  is empty' )
+            return
+
+        self.screenCapture()
+
+        image = np.array(self.currentImage)
+        print(image.shape)
+        image=cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
+        self.TextDetection.image=image
+        bboxes=self.TextDetection.get_bboxes()
+        img_list = self.TextDetection.get_text_list()
+        bbox=None
+        ocr_str_all=[]
+        for i in range(len(img_list)):
+            self.TextDistinguish.imageToBase64(img_list[i])
+            ocr_str=self.TextDistinguish.send()
+            ocr_str_all.append(ocr_str)
+            print('ocr_str:' ,ocr_str)
+            if ocr_str==self.click_str_entry.get():
+                print(bboxes[i])
+                bbox=bboxes[i]
+                break
+                # print('ocr_str:', ocr_str)
+                # print('self.click_str_entry  ', self.click_str_entry.get())
+        print('length  ' , len(bboxes), ' --  ' ,len(ocr_str_all))
+        if bbox is None:
+            #如果指定的字符不能匹配则 找识别到语句中的字符 ,并根据需要查找字符在语句中的位置 ,计算出 bbox(图片的范围)
+            for i in range(len(ocr_str_all)):
+                str_=ocr_str_all[i]
+                find_str_position=str_.find(self.click_str_entry.get())
+                if find_str_position>-1:
+                    print('str_  ' ,str_)
+                    print(bboxes[i])
+                    str_w=(bboxes[i][2]-bboxes[i][0]) / len(str_)
+                    x1=find_str_position * str_w
+                    x2=(find_str_position + len(self.click_str_entry.get())) * str_w
+                    print('x1 ', int(x1) ,',x2 ',int(x2))
+                    # print('find str ')
+                    bbox=bboxes[i]
+                    bbox[2] = bbox[0] + int(x2)
+                    bbox[0]= bbox[0] + int(x1)
+                    print('bbox ', bbox)
+
+                    break
+
+        if bbox is not None:
+            img=image[bbox[1]:bbox[3],bbox[0]:bbox[2]]
+            img=cv2.cvtColor(img,cv2.COLOR_RGB2BGR)
+            img=Image.fromarray(img)
+            self.mImgContourSave=img
+            self.mImgContour = ImageTk.PhotoImage(img)
+            self.canvasContour.create_image(0, 0, anchor="nw", image=self.mImgContour)
+
+        print(' time ',(time.time() - time1))
+
+    def execute_model2(self):
+        if self.TextDetection is None:
+            return
+
+        print('self.click_str_entry  ', self.click_str_entry.get())
+        if self.click_str_entry.get()=='':
+            print('self.click_str_entry  is empty' )
+            return
+
+        # self.screenCapture()
+
+        image = np.array(self.currentImage)
+        print(image.shape)
+        image=cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
+        self.TextDistinguish.imageToBase64(image);
+        json_str = self.TextDistinguish.send_JD()
+
+        patten = "'" + self.click_str_entry.get() + "', 'location': {'x': (\d+), 'y': (\d+), 'width': (\d+), 'height': (\d+)}"
+        match=re.search(patten,str(json_str))
+        print(match.group(0))
+        print(match.group(1))
+        print(match.group(2))
+        print(match.group(3))
+        print(match.group(4))
+        x1=int(match.group(1))
+        x2=int(match.group(1)) + int(match.group(3))
+        y1=int(match.group(2))
+        y2=int(match.group(2)) + int(match.group(4))
+
+
+        img = image[y1:y2,x1:x2]
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        img = Image.fromarray(img)
+        self.mImgContourSave = img
+        self.mImgContour = ImageTk.PhotoImage(img)
+        self.canvasContour.create_image(0, 0, anchor="nw", image=self.mImgContour)
+
 
     def colorTool(self):
         Notebook_color_tool = self.ttk.Notebook(self.mWindow1)
@@ -1615,7 +1743,6 @@ def saveH264():
         if index>30:
             break
     fileH264.close()
-
 
 
 
